@@ -12,7 +12,7 @@ import (
 
 const (
 	Port       = 8888
-	BufferSize = 1 << 16 // 32 KiB
+	BufferSize = 1 << 16 // 64 KiB
 )
 
 var ConnectionClose = "\r\nConnection: close\r\n\r\n"
@@ -36,7 +36,7 @@ func SimpleForward(from, to net.Conn, isClosed chan bool) {
 		from.RemoteAddr(),
 		to.RemoteAddr(),
 	)
-	sleepTime := 5 * time.Millisecond // 10MB/s
+	sleepTime := 1 * time.Millisecond
 	for {
 		data, err := AsyncReceiver(from, BufferSize)
 		select {
@@ -106,7 +106,7 @@ func ProccessRequest(client *net.TCPConn) {
 }
 
 func ParseFilterFile(f string) {
-	data, err := os.ReadFile(f)
+	data, err := ReadFile(f)
 	if err != nil {
 		log.Fatal(err)
 	}
