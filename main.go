@@ -17,26 +17,22 @@ const (
 
 var filter = map[string]bool{}
 
+/// SimpleForward forwards raw data between two connections
 func SimpleForward(from, to net.Conn, isClosed chan bool) {
-	fmt.Printf(
-		"Forwarding data from %v to %v...\n",
-		from.RemoteAddr(),
-		to.RemoteAddr(),
-	)
 	defer func() {
 		from.Close()
 		to.Close()
-		fmt.Printf(
-			"Closed forward from %v to %v!\n",
-			from.RemoteAddr(),
-			to.RemoteAddr(),
-		)
 	}()
 	sleepTime := 1 * time.Millisecond
 	for {
 		data, err := AsyncReceiver(from, BufferSize)
 		select {
 		case <-isClosed:
+			fmt.Printf(
+				"Closed forward from %v to %v!\n",
+				from.RemoteAddr(),
+				to.RemoteAddr(),
+			)
 			return
 		case <-err:
 			isClosed <- true
@@ -52,7 +48,13 @@ func SimpleForward(from, to net.Conn, isClosed chan bool) {
 	}
 }
 
+/// Link links two connections using the SimpleForward function
 func Link(client, server net.Conn) {
+	fmt.Printf(
+		"Forwarding data from %v to %v...\n",
+		server.RemoteAddr(),
+		client.RemoteAddr(),
+	)
 	isClosed := make(chan bool)
 	go SimpleForward(client, server, isClosed)
 	go SimpleForward(server, client, isClosed)
@@ -65,7 +67,8 @@ func ForwardHTTP(client *net.TCPConn, informations []string) {
 		port = "80"
 	}
 	if _, ok := filter[urlInfo.Host]; ok {
-		client.Write(RedirectToLocalhost)
+		fmt.Printf("%s blocked!\n", urlInfo.Host)
+		client.Write(Filtered)
 		return
 	}
 	server, err := net.Dial("tcp", fmt.Sprintf("%s:%s", urlInfo.Host, port))
@@ -86,12 +89,13 @@ func ForwardHTTP(client *net.TCPConn, informations []string) {
 func ForwardHTTPS(client *net.TCPConn, informations []string) {
 	domain := strings.Split(informations[1], ":")[0]
 	if _, ok := filter[domain]; ok {
-		client.Write(RedirectToLocalhost)
+		fmt.Printf("%s blocked!\n", domain)
+		client.Write(Filtered)
 		return
 	}
 	server, err := net.Dial("tcp", informations[1])
 	if err != nil {
-		client.Close()
+		client.Write(Unavailable)
 		return
 	}
 	// Reads the headers received from the client so as not to forward
@@ -110,6 +114,7 @@ func ForwardHTTPS(client *net.TCPConn, informations []string) {
 	Link(client, server)
 }
 
+/// ProccessRequest try to choose between forward HTTP or HTTPS
 func ProccessRequest(client *net.TCPConn) {
 	header, err := ReadLineFromConnection(client)
 	if err != nil {
