@@ -85,6 +85,11 @@ func ForwardHTTP(client *net.TCPConn, informations []string) {
 }
 
 func ForwardHTTPS(client *net.TCPConn, informations []string) {
+	domain := strings.Split(informations[1], ":")[0]
+	if _, ok := filter[domain]; ok {
+		client.Write(RedirectToLocalhost)
+		return
+	}
 	server, err := net.Dial("tcp", informations[1])
 	if err != nil {
 		client.Close()
