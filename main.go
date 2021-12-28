@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -52,36 +52,35 @@ func SimpleForward(from, to net.Conn, isClosed chan bool) {
 	}
 }
 
+func Link(client, server net.Conn) {
+	isClosed := make(chan bool)
+	go SimpleForward(client, server, isClosed)
+	go SimpleForward(server, client, isClosed)
+}
+
 func ForwardHTTP(client *net.TCPConn, informations []string) {
-	urlParts := strings.Split(informations[1], "://")
-	domain := urlParts[0]
-	if len(urlParts) == 2 {
-		domain = strings.Split(urlParts[1], "/")[0]
+	urlInfo, _ := url.Parse(informations[1])
+	port := urlInfo.Port()
+	if port == "" {
+		port = "80"
 	}
-	path := strings.Join(strings.Split(urlParts[1], "/")[1:], "/")
-	newHeader := fmt.Sprintf("%s /%s %s\r\n", informations[0], path, informations[2])
-	port := 80
-	domainParts := strings.Split(domain, ":")
-	if len(domainParts) == 2 {
-		domain = domainParts[0]
-		i, _ := strconv.Atoi(domainParts[1])
-		if i > 0 {
-			port = i
-		}
-	}
-	if _, ok := filter[domain]; ok {
+	if _, ok := filter[urlInfo.Host]; ok {
 		client.Write(RedirectToLocalhost)
 		return
 	}
-	server, err := net.Dial("tcp", fmt.Sprintf("%s:%d", domain, port))
+	server, err := net.Dial("tcp", fmt.Sprintf("%s:%s", urlInfo.Host, port))
 	if err != nil {
 		client.Write(Unavailable)
 		return
 	}
+	newHeader := fmt.Sprintf(
+		"%s %s %s\r\n",
+		informations[0],
+		urlInfo.Path,
+		informations[2],
+	)
 	server.Write([]byte(newHeader))
-	isClosed := make(chan bool)
-	go SimpleForward(client, server, isClosed)
-	go SimpleForward(server, client, isClosed)
+	Link(client, server)
 }
 
 func ForwardHTTPS(client *net.TCPConn, informations []string) {
@@ -95,6 +94,8 @@ func ForwardHTTPS(client *net.TCPConn, informations []string) {
 		client.Close()
 		return
 	}
+	// Reads the headers received from the client so as not to forward
+	// them to the server
 	for {
 		line, err := ReadLineFromConnection(client)
 		if err != nil {
@@ -106,9 +107,7 @@ func ForwardHTTPS(client *net.TCPConn, informations []string) {
 		}
 	}
 	client.Write(Connected)
-	isClosed := make(chan bool)
-	go SimpleForward(client, server, isClosed)
-	go SimpleForward(server, client, isClosed)
+	Link(client, server)
 }
 
 func ProccessRequest(client *net.TCPConn) {
