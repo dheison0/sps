@@ -1,9 +1,9 @@
 package main
 
 import (
+	"io"
 	"net"
 	"os"
-	"io"
 )
 
 func ReadLinesFromBytes(d []byte) [][]byte {
@@ -57,7 +57,6 @@ func AsyncReceiver(c net.Conn, bs uint) (chan []byte, chan error) {
 	return data, err
 }
 
-
 // Copied from go1.17/src/os/file.go to run on go 1.13(termux legacy)
 func ReadFile(name string) ([]byte, error) {
 	f, err := os.Open(name)
@@ -99,4 +98,3 @@ func ReadFile(name string) ([]byte, error) {
 		}
 	}
 }
-

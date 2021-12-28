@@ -15,12 +15,6 @@ const (
 	BufferSize = 1 << 16 // 64 KiB
 )
 
-var ConnectionClose = "\r\nConnection: close\r\n\r\n"
-
-var RedirectToLocalhost = []byte("HTTP/1.1 301 Moved Permanently\r\nLocation: http://localhost/" + ConnectionClose)
-var MethodNotImplemented = []byte("HTTP/1.1 501 Not Implemented" + ConnectionClose)
-var Unavailable = []byte("HTTP/1.1 503 Service Unavailable" + ConnectionClose)
-
 var filter = map[string]bool{}
 
 func SimpleForward(from, to net.Conn, isClosed chan bool) {
@@ -29,13 +23,15 @@ func SimpleForward(from, to net.Conn, isClosed chan bool) {
 		from.RemoteAddr(),
 		to.RemoteAddr(),
 	)
-	defer from.Close()
-	defer to.Close()
-	defer fmt.Printf(
-		"Closed forward from %v to %v!\n",
-		from.RemoteAddr(),
-		to.RemoteAddr(),
-	)
+	defer func() {
+		from.Close()
+		to.Close()
+		fmt.Printf(
+			"Closed forward from %v to %v!\n",
+			from.RemoteAddr(),
+			to.RemoteAddr(),
+		)
+	}()
 	sleepTime := 1 * time.Millisecond
 	for {
 		data, err := AsyncReceiver(from, BufferSize)
@@ -56,29 +52,14 @@ func SimpleForward(from, to net.Conn, isClosed chan bool) {
 	}
 }
 
-func ProccessRequest(client *net.TCPConn) {
-	fmt.Printf("Receiving header... ")
-	header, err := ReadLineFromConnection(client)
-	if err != nil {
-		fmt.Println("Failed!")
-		client.Close()
-		return
-	}
-	fmt.Println("Done")
-	informations := strings.Split(header, " ")
-	method := informations[0]
-	if method == "CONNECT" {
-		fmt.Printf("Method %s not implemented!\n", method)
-		client.Write(MethodNotImplemented)
-		return
-	}
+func ForwardHTTP(client *net.TCPConn, informations []string) {
 	urlParts := strings.Split(informations[1], "://")
 	domain := urlParts[0]
 	if len(urlParts) == 2 {
 		domain = strings.Split(urlParts[1], "/")[0]
 	}
 	path := strings.Join(strings.Split(urlParts[1], "/")[1:], "/")
-	newHeader := fmt.Sprintf("%s /%s %s\r\n", method, path, informations[2])
+	newHeader := fmt.Sprintf("%s /%s %s\r\n", informations[0], path, informations[2])
 	port := 80
 	domainParts := strings.Split(domain, ":")
 	if len(domainParts) == 2 {
@@ -89,13 +70,11 @@ func ProccessRequest(client *net.TCPConn) {
 		}
 	}
 	if _, ok := filter[domain]; ok {
-		fmt.Println("URL found on filter!")
 		client.Write(RedirectToLocalhost)
 		return
 	}
 	server, err := net.Dial("tcp", fmt.Sprintf("%s:%d", domain, port))
 	if err != nil {
-		fmt.Println("Failed to connect to remote server!")
 		client.Write(Unavailable)
 		return
 	}
@@ -103,6 +82,43 @@ func ProccessRequest(client *net.TCPConn) {
 	isClosed := make(chan bool)
 	go SimpleForward(client, server, isClosed)
 	go SimpleForward(server, client, isClosed)
+}
+
+func ForwardHTTPS(client *net.TCPConn, informations []string) {
+	server, err := net.Dial("tcp", informations[1])
+	if err != nil {
+		client.Close()
+		return
+	}
+	for {
+		line, err := ReadLineFromConnection(client)
+		if err != nil {
+			client.Close()
+			return
+		}
+		if line == "" {
+			break
+		}
+	}
+	client.Write(Connected)
+	isClosed := make(chan bool)
+	go SimpleForward(client, server, isClosed)
+	go SimpleForward(server, client, isClosed)
+}
+
+func ProccessRequest(client *net.TCPConn) {
+	header, err := ReadLineFromConnection(client)
+	if err != nil {
+		client.Close()
+		return
+	}
+	informations := strings.Split(header, " ")
+	method := informations[0]
+	if method == "CONNECT" {
+		ForwardHTTPS(client, informations)
+	} else {
+		ForwardHTTP(client, informations)
+	}
 }
 
 func ParseFilterFile(f string) {
