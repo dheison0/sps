@@ -1,8 +1,9 @@
 # proxy-server
 
-A simple proxy server with support to HTTP and domain filter.
+A simple HTTP proxy server with support to domain filter.
 
 
 ## TODO
+
   - [x] Support to HTTP
   - [x] Support to HTTPS
