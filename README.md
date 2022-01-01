@@ -1,6 +1,8 @@
-# proxy-server
+# sps
 
-A simple HTTP proxy server with support to domain filter.
+SPS is a simple HTTP/HTTPS proxy server written in Go for run on my phone
+that has only 512MB of RAM and run Android 6 with a average use of 80% of
+RAM.
 
 
 ## TODO
