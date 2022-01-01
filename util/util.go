@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"io"
@@ -40,21 +40,6 @@ func ReadLineFromConnection(c net.Conn) (string, error) {
 		line = append(line, b[0])
 	}
 	return string(line), nil
-}
-
-func AsyncReceiver(c net.Conn, bs uint) (chan []byte, chan error) {
-	data := make(chan []byte)
-	err := make(chan error)
-	go func() {
-		received := make([]byte, bs)
-		s, e := c.Read(received)
-		if e != nil {
-			err <- e
-		} else {
-			data <- received[:s]
-		}
-	}()
-	return data, err
 }
 
 // Copied from go1.17/src/os/file.go to run on go 1.13(termux legacy)
