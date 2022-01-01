@@ -7,5 +7,6 @@ A simple HTTP proxy server with support to domain filter.
 
   - [x] Support to HTTP
   - [x] Support to HTTPS
+  - [ ] Use [cobra](http://cobra.dev) to parse args
   - [ ] Configuration file
   - [ ] Documentation
