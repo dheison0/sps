@@ -16,12 +16,12 @@ func HTTP(client *net.TCPConn, informations []string) {
 	}
 	if _, ok := Filter[urlInfo.Host]; ok {
 		fmt.Printf("%s blocked!\n", urlInfo.Host)
-		client.Write(responses.Filtered)
+		Close(client, responses.Filtered)
 		return
 	}
 	server, err := net.Dial("tcp", fmt.Sprintf("%s:%s", urlInfo.Host, port))
 	if err != nil {
-		client.Write(responses.Unavailable)
+		Close(client, responses.Unavailable)
 		return
 	}
 	newHeader := fmt.Sprintf(

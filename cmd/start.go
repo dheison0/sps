@@ -6,9 +6,12 @@ import (
 	"log"
 	"net"
 	"sps/pkg"
+	"sps/util"
+	"sps/pkg/forwards"
 )
 
-var Port uint16 = 8888
+var port uint16
+var filterFile string
 
 var startCmd = &cobra.Command{
 	Use:   "start",
@@ -19,17 +22,41 @@ file or flags are not especified`,
 }
 
 func init() {
-	startCmd.Flags().Uint16VarP(&Port, "port", "p", 8888, "The port to listen the server")
+	startCmd.Flags().Uint16VarP(
+		&port,
+		"port",
+		"p",
+		8888,
+		"The port to listen the server",
+	)
+	startCmd.Flags().StringVarP(
+		&filterFile,
+		"filter",
+		"f",
+		"",
+		"A text file containing the filters to match",
+	)
 	rootCmd.AddCommand(startCmd)
 }
 
 func start(cmd *cobra.Command, args []string) {
-	server, err := net.ListenTCP("tcp", &net.TCPAddr{Port: int(Port)})
+	if filterFile != "" {
+		fmt.Println("Processing filter file...")
+		file, err := util.ReadFile(filterFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		lines := util.ReadLinesFromBytes(file)
+		for _, l := range lines {
+			forwards.AddFilter(string(l))
+		}
+	}
+	server, err := net.ListenTCP("tcp", &net.TCPAddr{Port: int(port)})
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer server.Close()
-	fmt.Printf("Server started at port %d!\n", Port)
+	fmt.Printf("Server started at port %d!\n", port)
 	for {
 		client, err := server.AcceptTCP()
 		if err != nil {

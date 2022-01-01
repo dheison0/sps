@@ -17,7 +17,7 @@ func HTTPS(client *net.TCPConn, informations []string) {
 	}
 	server, err := net.Dial("tcp", informations[1])
 	if err != nil {
-		client.Write(responses.Unavailable)
+		Close(client, responses.Unavailable)
 		return
 	}
 	// Reads the headers received from the client so as not to forward
