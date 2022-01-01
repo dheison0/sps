@@ -8,7 +8,7 @@ import (
 	"sps/pkg"
 )
 
-const DefaultPort = 8888
+var Port uint16 = 8888
 
 var startCmd = &cobra.Command{
 	Use:   "start",
@@ -19,16 +19,17 @@ file or flags are not especified`,
 }
 
 func init() {
+	startCmd.Flags().Uint16VarP(&Port, "port", "p", 8888, "The port to listen the server")
 	rootCmd.AddCommand(startCmd)
 }
 
 func start(cmd *cobra.Command, args []string) {
-	server, err := net.ListenTCP("tcp", &net.TCPAddr{Port: DefaultPort})
+	server, err := net.ListenTCP("tcp", &net.TCPAddr{Port: int(Port)})
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer server.Close()
-	fmt.Printf("Server started at port %d!\n", DefaultPort)
+	fmt.Printf("Server started at port %d!\n", Port)
 	for {
 		client, err := server.AcceptTCP()
 		if err != nil {
