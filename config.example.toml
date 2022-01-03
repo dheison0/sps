@@ -1,6 +1,14 @@
+# Main configuration of the server
 [main]
+# Listen port
 port = 8080
 
+# Configurations for the use of filters, remove this section to disable
 [filter]
+# Path to filter file, I recommend to use the absolutely path instead of
+# the relative filename
 file = "filter.txt"
-enable_regex = false
+# Use regex to match URLs
+enable_regex = true
+# Using less memory runs very slow if compared to normal mode
+less_memory = false
