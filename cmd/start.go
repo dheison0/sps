@@ -9,20 +9,10 @@ import (
 	"sps/pkg"
 	"sps/pkg/forwards"
 	"sps/util"
+	"sps/types"
 )
 
-type Config struct {
-	Main struct {
-		Port int `toml:"port"`
-	} `toml:"main"`
-	Filter struct {
-		File        string `toml:"file"`
-		EnableRegex bool   `toml:"enable_regex"`
-	} `toml:"filter"`
-	ConfigFile string
-}
-
-var config = Config{}
+var config = types.Config{}
 
 var startCmd = &cobra.Command{
 	Use:   "start",
@@ -68,17 +58,7 @@ func start(cmd *cobra.Command, args []string) {
 			log.Fatal(err)
 		}
 	}
-	if config.Filter.File != "" {
-		fmt.Println("Processing filter file...")
-		file, err := util.ReadFile(config.Filter.File)
-		if err != nil {
-			log.Fatal(err)
-		}
-		lines := util.ReadLinesFromBytes(file)
-		for _, l := range lines {
-			forwards.AddFilter(string(l))
-		}
-	}
+	forwards.SetConfigAndParse(config.Filter)
 	server, err := net.ListenTCP("tcp", &net.TCPAddr{Port: config.Main.Port})
 	if err != nil {
 		log.Fatal(err)
@@ -90,6 +70,6 @@ func start(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		go pkg.ProccessRequest(client)
+		go pkg.ProccessRequest(client, config.Filter.EnableRegex)
 	}
 }

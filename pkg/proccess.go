@@ -8,7 +8,7 @@ import (
 )
 
 /// ProccessRequest try to choose between forward HTTP or HTTPS
-func ProccessRequest(client *net.TCPConn) {
+func ProccessRequest(client *net.TCPConn, useRegex bool) {
 	header, err := util.ReadLineFromConnection(client)
 	if err != nil {
 		client.Close()
@@ -19,6 +19,6 @@ func ProccessRequest(client *net.TCPConn) {
 	if method == "CONNECT" {
 		forwards.HTTPS(client, informations)
 	} else {
-		forwards.HTTP(client, informations)
+		forwards.HTTP(client, informations, useRegex)
 	}
 }

@@ -1,17 +1,13 @@
 package forwards
 
 import (
-	"fmt"
 	"net"
 	"sps/responses"
 	"sps/util"
-	"strings"
 )
 
 func HTTPS(client *net.TCPConn, informations []string) {
-	domain := strings.Split(informations[1], ":")[0]
-	if _, ok := Filter[domain]; ok {
-		fmt.Printf("%s blocked!\n", domain)
+	if MatchFilter(informations[1]) {
 		client.Write(responses.Filtered)
 		return
 	}

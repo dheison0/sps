@@ -8,14 +8,13 @@ import (
 	"sps/util"
 )
 
-func HTTP(client *net.TCPConn, informations []string) {
+func HTTP(client *net.TCPConn, informations []string, useRegex bool) {
 	urlInfo, _ := url.Parse(informations[1])
 	port := urlInfo.Port()
 	if port == "" {
 		port = "80"
 	}
-	if _, ok := Filter[urlInfo.Host]; ok {
-		fmt.Printf("%s blocked!\n", urlInfo.Host)
+	if MatchFilter(informations[1]) {
 		Close(client, responses.Filtered)
 		return
 	}
