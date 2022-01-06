@@ -49,16 +49,16 @@ func ParseFilterFile() (int, error) {
 	return len(lines), nil
 }
 
-func MatchFilter(url string) bool {
+func MatchFilter(matchURL string) bool {
 	log.Println("Testing filters...")
 	result := false
-	if _, ok := Filter[url]; ok {
+	if _, ok := Filter[matchURL]; ok {
 		result = true
 	} else if config.EnableRegex && config.LessMemory {
-		for r, _ := range Filter {
-			match, err := regexp.MatchString(r, url)
+		for pattern, _ := range Filter {
+			match, err := regexp.MatchString(pattern, matchURL)
 			if err != nil {
-				log.Println("Pattern '%s' compilation error: %s", r, err.Error())
+				log.Println("Pattern '%s' compilation error: %s", pattern, err.Error())
 				continue
 			}
 			if match {
@@ -67,8 +67,8 @@ func MatchFilter(url string) bool {
 			}
 		}
 	} else if config.EnableRegex {
-		for _, r := range FilterRegex {
-			match := r.MatchString(url)
+		for _, regex := range FilterRegex {
+			match := regex.MatchString(matchURL)
 			if match {
 				result = true
 				break
@@ -76,7 +76,7 @@ func MatchFilter(url string) bool {
 		}
 	}
 	if result {
-		log.Printf("%s blocked!\n", url)
+		log.Printf("%s blocked!\n", matchURL)
 	} else {
 		log.Println("Done, alright!")
 	}
