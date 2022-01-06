@@ -36,7 +36,6 @@ func ParseFilterFile() (int, error) {
 			continue
 		}
 		if config.LessMemory {
-			// Filter = append(Filter, &line)
 			Filter[line] = nil
 		} else {
 			re, err := regexp.Compile(line)
