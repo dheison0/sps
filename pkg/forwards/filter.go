@@ -2,6 +2,7 @@ package forwards
 
 import (
 	"log"
+	"net/url"
 	"regexp"
 	"sps/types"
 	"sps/util"
@@ -52,7 +53,8 @@ func ParseFilterFile() (int, error) {
 func MatchFilter(matchURL string) bool {
 	log.Println("Testing filters...")
 	result := false
-	if _, ok := Filter[matchURL]; ok {
+	urlInfo, _ := url.Parse(matchURL)
+	if _, ok := Filter[urlInfo.Host]; ok {
 		result = true
 	} else if config.EnableRegex && config.LessMemory {
 		for pattern, _ := range Filter {
