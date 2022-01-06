@@ -11,5 +11,5 @@ of RAM.
   - [x] Support to HTTPS
   - [x] Use [cobra](http://cobra.dev) to parse args
   - [x] Configuration file
-  - [ ] Regex filter
+  - [x] Regex filter
   - [ ] Documentation
