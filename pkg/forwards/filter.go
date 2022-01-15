@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"sps/types"
 	"sps/util"
+	"os"
 )
 
 var FilterRegex = []*regexp.Regexp{}
@@ -25,7 +26,7 @@ func SetConfigAndParse(c types.FilterConfig) {
 
 func ParseFilterFile() (int, error) {
 	log.Println("Processing filter file...")
-	data, err := util.ReadFile(config.File)
+	data, err := os.ReadFile(config.File)
 	if err != nil {
 		return 0, err
 	}

@@ -8,8 +8,8 @@ import (
 	"net"
 	"sps/pkg"
 	"sps/pkg/forwards"
-	"sps/util"
 	"sps/types"
+	"os"
 )
 
 var config = types.Config{}
@@ -49,7 +49,7 @@ func init() {
 
 func start(cmd *cobra.Command, args []string) {
 	if config.ConfigFile != "" {
-		file, err := util.ReadFile(config.ConfigFile)
+		file, err := os.ReadFile(config.ConfigFile)
 		if err != nil {
 			log.Fatal(err)
 		}
