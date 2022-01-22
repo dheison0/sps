@@ -6,10 +6,10 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"net"
+	"os"
 	"sps/pkg"
 	"sps/pkg/forwards"
 	"sps/types"
-	"os"
 )
 
 var config = types.Config{}

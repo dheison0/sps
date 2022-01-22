@@ -3,10 +3,10 @@ package forwards
 import (
 	"log"
 	"net/url"
+	"os"
 	"regexp"
 	"sps/types"
 	"sps/util"
-	"os"
 )
 
 var FilterRegex = []*regexp.Regexp{}
