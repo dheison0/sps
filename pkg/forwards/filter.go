@@ -61,7 +61,7 @@ func MatchFilter(matchURL string) bool {
 		for pattern, _ := range Filter {
 			match, err := regexp.MatchString(pattern, matchURL)
 			if err != nil {
-				log.Println("Pattern '%s' compilation error: %s", pattern, err.Error())
+				log.Printf("Pattern '%s' compilation error: %s\n", pattern, err.Error())
 				continue
 			}
 			if match {
