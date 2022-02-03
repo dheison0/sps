@@ -37,6 +37,13 @@ func init() {
 		"",
 		"A simple text file containing the filters to match",
 	)
+	startCmd.Flags().BoolVarP(
+		&config.Filter.EnableRegex,
+		"enable-regex",
+		"r",
+		true,
+		"Enable regex on filter parser",
+	)
 	startCmd.Flags().StringVarP(
 		&config.ConfigFile,
 		"config",
