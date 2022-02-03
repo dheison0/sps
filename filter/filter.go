@@ -1,4 +1,4 @@
-package forwards
+package filter
 
 import (
 	"log"

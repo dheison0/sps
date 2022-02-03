@@ -1,13 +1,14 @@
-package forwards
+package proxy
 
 import (
 	"net"
 	"sps/responses"
 	"sps/util"
+	"sps/filter"
 )
 
 func HTTPS(client *net.TCPConn, informations []string) {
-	if MatchFilter(informations[1]) {
+	if filter.MatchFilter(informations[1]) {
 		client.Write(responses.Filtered)
 		return
 	}

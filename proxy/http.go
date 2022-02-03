@@ -1,4 +1,4 @@
-package forwards
+package proxy
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"sps/responses"
 	"sps/util"
+	"sps/filter"
 )
 
 func HTTP(client *net.TCPConn, informations []string, useRegex bool) {
@@ -14,7 +15,7 @@ func HTTP(client *net.TCPConn, informations []string, useRegex bool) {
 	if port == "" {
 		port = "80"
 	}
-	if MatchFilter(informations[1]) {
+	if filter.MatchFilter(informations[1]) {
 		Close(client, responses.Filtered)
 		return
 	}

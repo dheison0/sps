@@ -7,8 +7,8 @@ import (
 	"log"
 	"net"
 	"os"
-	"sps/pkg"
-	"sps/pkg/forwards"
+	"sps/proxy"
+	"sps/filter"
 	"sps/types"
 )
 
@@ -65,7 +65,7 @@ func start(cmd *cobra.Command, args []string) {
 			log.Fatal(err)
 		}
 	}
-	forwards.SetConfigAndParse(config.Filter)
+	filter.SetConfigAndParse(config.Filter)
 	server, err := net.ListenTCP("tcp", &net.TCPAddr{Port: config.Main.Port})
 	if err != nil {
 		log.Fatal(err)
@@ -77,6 +77,6 @@ func start(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		go pkg.ProccessRequest(client, config.Filter.EnableRegex)
+		go proxy.ProccessRequest(client, config.Filter.EnableRegex)
 	}
 }

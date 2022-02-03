@@ -1,8 +1,7 @@
-package pkg
+package proxy
 
 import (
 	"net"
-	"sps/pkg/forwards"
 	"sps/util"
 	"strings"
 )
@@ -17,8 +16,8 @@ func ProccessRequest(client *net.TCPConn, useRegex bool) {
 	informations := strings.Split(header, " ")
 	method := informations[0]
 	if method == "CONNECT" {
-		forwards.HTTPS(client, informations)
+		HTTPS(client, informations)
 	} else {
-		forwards.HTTP(client, informations, useRegex)
+		HTTP(client, informations, useRegex)
 	}
 }
