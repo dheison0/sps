@@ -12,7 +12,6 @@ var rootCmd = &cobra.Command{
 	Short: "SPS is a Simple Proxy Server for your tiny server",
 	Long: `SPS is a proxy server with support to filter by
 domain using low memory.`,
-	Run: func(cmd *cobra.Command, args []string) {},
 }
 
 func Execute() {
